@@ -1,5 +1,4 @@
 import ttkbootstrap as ttk
-from query_entry import Query
 from PIL import Image, ImageTk
 import customtkinter as ctk
 from submit_handler import respone_genrator
@@ -18,41 +17,57 @@ class App(ttk.Window):
         self.iconbitmap("images/ChatGPT-Logo.ico")
         self.query_var = ttk.StringVar()
         self.y = 0.5
+        self.sub_frame = ttk.Frame(self)
+        self.sub_frame.place(relx=0.5, rely=0.5)
         self.label = ttk.Label(self, text="Query", font=("Helvetica", 15, "normal"))
         self.label.place(relx=0.5, rely=0.43, anchor="center")
-        self.query = Query(self, style="success", var=self.query_var, y=self.y)
+        self.query = ttk.Entry(
+            self.sub_frame, bootstyle="success", textvariable=self.query_var, width=50
+        )
+        self.query.place(relx=0.5, rely=self.y, anchor="center")
         self.widget_creator()
+        self.sub_btn = ttk.Button(
+            self.sub_frame,
+            text="Submit",
+            bootstyle="success-outline",
+            command=self.animate_widget,
+        )
+        self.clear_btn = ctk.CTkButton(
+            self,
+            text="",
+            height=18,
+            width=18,
+            image=image_parser(r"images\close.png", (25, 25)),
+            fg_color="#002B36",
+            corner_radius=10,
+            hover_color="#002B36",
+            command=lambda: (self.query_var.set("")),
+        )
+        self.result_box = ttk.Text(self)
         self.mainloop()
 
     def widget_creator(self):
         def creator(_):
-            global sub_btn
-            sub_btn = ttk.Button(
-                self,
-                text="Submit",
-                bootstyle="success-outline",
-                command=self.animate_widget,
-            )
-            sub_btn.place(relx=0.5, rely=0.6, anchor="center")
-            global clear_btn
-            clear_btn = ctk.CTkButton(
-                self,
-                text="",
-                height=18,
-                width=18,
-                image=image_parser(r"images\close.png", (25, 25)),
-                fg_color="#002B36",
-                corner_radius=10,
-                hover_color="#002B36",
-                command=lambda: (self.query_var.set("")),
-            )
-            clear_btn.place(relx=0.9, rely=0.47)
+            self.sub_btn.place(relx=0.5, rely=0.6, anchor="center")
+            self.clear_btn.pack(side="left", padx=2)
 
         self.query.bind("<KeyRelease>", lambda _: creator(_))
 
     def animate_widget(self):
-        sub_btn.place_forget()
-        clear_btn.place_forget()
+        self.sub_btn.place_forget()
+        self.clear_btn.pack_forget()
+        self.label.place_forget()
+
+        def animate():
+            if self.y > 0.15:
+                self.y -= 0.0035
+                self.query.place(relx=0.5, rely=self.y, anchor="center")
+                self.after(1, animate)
+            else:
+                self.query.configure(state="readonly")
+                self.result_box.pack(pady=5, padx=5, expand=True, fill="x")
+
+        animate()
 
 
 if __name__ == "__main__":
