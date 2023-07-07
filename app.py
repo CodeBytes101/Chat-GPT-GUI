@@ -19,7 +19,7 @@ class App(ttk.Window):
         self.minsize(width=600, height=650)
         self.query_var = ttk.StringVar()
         self.y = 0.5
-        self.label = ttk.Label(self, text="Query", font=("Helvetica", 15, "normal"))
+        self.label = ttk.Label(self, text="Query", font=("Helvetica", 15, "italic"))
         self.label.place(relx=0.5, rely=0.43, anchor="center")
         self.query = ttk.Entry(
             self, bootstyle="success", textvariable=self.query_var, width=50
@@ -30,7 +30,7 @@ class App(ttk.Window):
             self,
             text="Submit",
             bootstyle="success-outline",
-            command=self.animate_widget,
+            command=lambda: self.animate_widget(),
         )
         self.clear_btn = ctk.CTkButton(
             self,
@@ -43,13 +43,14 @@ class App(ttk.Window):
             hover_color="#002B36",
             command=lambda: (self.query_var.set("")),
         )
-        self.result_box = ctk.CTkTextbox(self)
+        self.result_box = ctk.CTkTextbox(self, height=375, width=500)
         self.mainloop()
 
     def widget_creator(self):
         def creator(_):
             self.sub_btn.place(relx=0.5, rely=0.6, anchor="center")
-            self.clear_btn.place(relx=0.885, rely=0.47)
+            self.clear_btn.place(relx=0.775, rely=0.47)
+            # self.query.bind("<Return>", lambda _: self.animate_widget(_))
 
         self.query.bind("<KeyRelease>", lambda _: creator(_))
 
@@ -65,7 +66,7 @@ class App(ttk.Window):
                 self.after(1, animate)
             else:
                 self.query.configure(state="readonly")
-                self.result_box.pack(pady=5, padx=5, expand=True, fill="both")
+                self.result_box.pack(pady=5, padx=5, expand=True)
                 self.inserter()
 
         animate()
@@ -73,8 +74,7 @@ class App(ttk.Window):
     def inserter(self):
         query = str(self.query_var.get())
         result = respone_genrator(query=query)
-        for i in result:
-            self.result_box.insert(i, "end")
+        self.result_box.insert("end", result)
 
 
 if __name__ == "__main__":
