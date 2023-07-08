@@ -1,4 +1,3 @@
-import os
 import ttkbootstrap as ttk
 from PIL import Image, ImageTk
 import customtkinter as ctk
@@ -24,7 +23,7 @@ class App(ttk.Window):
         self.label = ttk.Label(self, text="Query", font=("Helvetica", 15, "italic"))
         self.label.place(relx=0.5, rely=0.43, anchor="center")
         self.query = ttk.Entry(
-            self, bootstyle="success", textvariable=self.query_var, width=51
+            self, bootstyle="success", textvariable=self.query_var, width=32
         )
         self.query.place(relx=0.5, rely=self.y, anchor="center")
         self.widget_creator()
@@ -37,7 +36,7 @@ class App(ttk.Window):
         self.r = 0
         self.load_img = Image.open("images\load.png").resize((200, 200))
         self.load = ctk.CTkLabel(
-            self, image=ImageTk.PhotoImage(self.load_img.rotate(self.r))
+            self, text="", image=ImageTk.PhotoImage(self.load_img.rotate(self.r))
         )
         self.clear_btn = ctk.CTkButton(
             self,
@@ -51,7 +50,7 @@ class App(ttk.Window):
             command=lambda: (self.query_var.set("")),
         )
         self.result_box = ctk.CTkTextbox(
-            self, height=375, width=500, font=("Helvetica", 16, "normal")
+            self, height=325, width=500, font=("Helvetica", 16, "normal")
         )
         self.reset_btn = ttk.Button(
             self,
