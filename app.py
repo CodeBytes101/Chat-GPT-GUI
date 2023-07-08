@@ -1,7 +1,8 @@
+import os
 import ttkbootstrap as ttk
 from PIL import Image, ImageTk
 import customtkinter as ctk
-
+import threading
 import openai
 
 
@@ -14,16 +15,16 @@ class App(ttk.Window):
     def __init__(self, theme):
         super().__init__(themename=theme)
         self.title("Chat-GPT")
-        self.geometry("600x650")
-        self.iconbitmap("images/ChatGPT-Logo.ico")
-        self.maxsize(width=600, height=650)
-        self.minsize(width=600, height=650)
+        self.geometry("500x600")
+        self.iconbitmap("images/logo.ico")
+        self.maxsize(width=500, height=500)
+        self.minsize(width=500, height=600)
         self.query_var = ttk.StringVar()
         self.y = 0.5
         self.label = ttk.Label(self, text="Query", font=("Helvetica", 15, "italic"))
         self.label.place(relx=0.5, rely=0.43, anchor="center")
         self.query = ttk.Entry(
-            self, bootstyle="success", textvariable=self.query_var, width=75
+            self, bootstyle="success", textvariable=self.query_var, width=51
         )
         self.query.place(relx=0.5, rely=self.y, anchor="center")
         self.widget_creator()
@@ -31,7 +32,12 @@ class App(ttk.Window):
             self,
             text="Submit",
             bootstyle="success-outline",
-            command=lambda: self.animate_widget(),
+            command=self.submit_handler,
+        )
+        self.r = 0
+        self.load_img = Image.open("images\load.png").resize((200, 200))
+        self.load = ctk.CTkLabel(
+            self, image=ImageTk.PhotoImage(self.load_img.rotate(self.r))
         )
         self.clear_btn = ctk.CTkButton(
             self,
@@ -64,33 +70,47 @@ class App(ttk.Window):
     def widget_creator(self):
         def creator(_):
             self.sub_btn.place(relx=0.5, rely=0.6, anchor="center")
-            self.clear_btn.place(relx=0.775, rely=0.47)
+            self.clear_btn.place(relx=0.835, rely=0.47)
 
         self.query.bind("<KeyRelease>", lambda _: creator(_))
 
-    def animate_widget(self):
+    def submit_handler(self):
         self.sub_btn.place_forget()
         self.clear_btn.place_forget()
         self.label.place_forget()
 
         def animate():
-            if self.y > 0.15:
+            threading.Thread(target=self.inserter).start()
+            if self.y > 0.11:
                 self.y -= 0.0035
                 self.query.place(relx=0.5, rely=self.y, anchor="center")
                 self.after(1, animate)
             else:
                 self.query.configure(state="readonly")
-                self.result_box.pack(pady=5, padx=5, expand=True)
-                self.inserter()
-                self.reset_btn.place(relx=0.5, rely=0.85, anchor="center")
-                self.quit_btn.place(relx=0.6, rely=0.85, anchor="center")
+                self.load.place(relx=0.5, rely=0.45, anchor="center")
+                self.img_rotate()
 
         animate()
+
+    def img_rotate(self):
+        def rotate():
+            if self.load:
+                self.r -= 1.5
+                self.load.configure(
+                    image=ImageTk.PhotoImage(self.load_img.rotate(self.r))
+                )
+                self.after(1, rotate)
+
+        rotate()
 
     def inserter(self):
         query = str(self.query_var.get())
         result = self.respone_genrator(query)
+        self.load.place_forget()
+        self.result_box.pack(pady=8, padx=10, expand=True)
         self.result_box.insert("end", result)
+        self.reset_btn.place(relx=0.42, rely=0.9, anchor="center")
+        self.quit_btn.place(relx=0.55, rely=0.9, anchor="center")
 
     def reset(self):
         self.result_box.pack_forget()
@@ -104,7 +124,6 @@ class App(ttk.Window):
         self.quit_btn.place_forget()
 
     def respone_genrator(self, query: str) -> str:
-        openai.api_key = open("api.txt", "r").read()
         response = openai.ChatCompletion.create(
             model="gpt-3.5-turbo", messages=[{"role": "user", "content": query}]
         )
