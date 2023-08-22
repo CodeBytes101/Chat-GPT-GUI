@@ -3,6 +3,7 @@ from PIL import Image, ImageTk
 import customtkinter as ctk
 import threading
 import openai
+import os
 
 
 def image_parser(path: str, size: tuple):
@@ -35,8 +36,9 @@ class App(ttk.Window):
         )
         self.r = 0
         self.load_img = Image.open("images\load.png").resize((200, 200))
-        self.load = ctk.CTkLabel(
-            self, text="", image=ImageTk.PhotoImage(self.load_img.rotate(self.r))
+        self.animation_label = ctk.CTkLabel(
+            self,
+            text="",
         )
         self.clear_btn = ctk.CTkButton(
             self,
@@ -87,7 +89,7 @@ class App(ttk.Window):
             else:
                 self.query.configure(state="readonly")
                 self.load.place(relx=0.5, rely=0.45, anchor="center")
-                self.img_rotate()
+                self.Animate(r"images\loading")
 
         animate()
 
@@ -102,10 +104,28 @@ class App(ttk.Window):
 
         rotate()
 
+    def Animate(self, path):
+        self.files_names = []
+        for _, _, files in os.walk(path):
+            self.files_names = files
+        self.N_frames = len(self.files_names)
+        self.count = 0
+
+        def animate():
+            if self.count == self.N_frames:
+                self.count = 0
+            self.load.configure(
+                image=image_parser(f"{path}\{self.files_names[self.count]}", (200, 200))
+            )
+            self.count += 1
+            self.after(35, animate)
+
+        animate()
+
     def inserter(self):
         query = str(self.query_var.get())
         result = self.respone_genrator(query)
-        self.load.place_forget()
+        self.animation_label.place_forget()
         self.result_box.pack(pady=8, padx=10, expand=True)
         self.result_box.insert("end", result)
         self.reset_btn.place(relx=0.42, rely=0.9, anchor="center")
