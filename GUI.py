@@ -5,6 +5,9 @@ import threading
 import openai
 import os
 
+# create a new system variable under the name of OPENAI_API_KEY and store your openai api key
+# You can find your openai api key at https://platform.openai.com/account/api-keys
+
 
 def image_parser(path: str, size: tuple):
     img = Image.open(path).resize(size)
